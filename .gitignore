@@ -1,8 +1,12 @@
 #Unreal Engine 4
 
-/Maps/
-/StagedBuilds/
-/WindowsNoEditor/
+Maps/
+StagedBuilds/
+WindowsNoEditor/
+
+/Maps
+/StagedBuilds
+/WindowsNoEditor
 
 
 #Below folders can (supposedly) be built from the tracked files
