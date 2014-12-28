@@ -3,11 +3,12 @@
 Maps/
 StagedBuilds/
 WindowsNoEditor/
+Content/Maps/
 
 /Maps
 /StagedBuilds
 /WindowsNoEditor
-
+/Content/Maps
 
 #Below folders can (supposedly) be built from the tracked files
 /Binaries
@@ -21,7 +22,6 @@ DerivedDataCache/
 Intermediate/
 Saved/
 Build/
-
 
 
 
