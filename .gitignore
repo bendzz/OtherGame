@@ -1,14 +1,16 @@
 #Unreal Engine 4
 
-Maps/
+#Maps/
 StagedBuilds/
 WindowsNoEditor/
-Content/Maps/
+#Content/Maps/
+Content/Maps/TooLarg4GithubeMaps/
 
-/Maps
+#/Maps
 /StagedBuilds
 /WindowsNoEditor
-/Content/Maps
+#/Content/Maps
+/Content/Maps/TooLarg4GithubeMaps
 
 #Below folders can (supposedly) be built from the tracked files
 /Binaries
