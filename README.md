@@ -9,8 +9,13 @@ Meant to be sort of an open world RPG, but instead of building up a character ov
 
 Built in Unreal Engine 4. Internet Multiplayer and Oculus Rift enabled.
 
+.
 
 For full docs, questions, and chat, contact BendzzTF on skype.
+
+.
+
+.
 
 TO BUILD PROJECT  (UNTESTED!!) (Updated Dec 29)
 
