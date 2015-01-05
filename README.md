@@ -17,7 +17,7 @@ For full docs, questions, and chat, contact BendzzTF on skype.
 
 .
 
-TO BUILD PROJECT  (UNTESTED!!) (Updated Dec 29)
+TO BUILD PROJECT  (Confirmed working on Jan 4)
 
 -You need the most recent copy of Unreal Engine 4. It costs $20 per month, cancel any time. https://www.unrealengine.com/what-is-unreal-engine-4
 
@@ -27,9 +27,9 @@ TO BUILD PROJECT  (UNTESTED!!) (Updated Dec 29)
 
 -Files larger than 100MB not included! Make the following folder path, then add 'PreviewVilliage.umap'
 
-\OtherGame 4.6\Content\Maps\TooLarg4GithubeMaps\   DOWNLOAD: https://www.dropbox.com/s/nggfcjntcc0vyyj/PreviewVilliage.umap?dl=0
+\OtherGame 4.[?]\Content\Maps\TooLarg4GithubeMaps\   DOWNLOAD: https://www.dropbox.com/s/nggfcjntcc0vyyj/PreviewVilliage.umap?dl=0
 
--(STILL TROUBLESHOOTING THIS) Build the project in Visual Studio. Open OtherGame.sln, build.
+-Build the project in Visual Studio. Open OtherGame.sln, build (hit F7).
 
 -Use the Unreal Engine Launcher to download the newest engine version, open it.
 
@@ -37,4 +37,4 @@ TO BUILD PROJECT  (UNTESTED!!) (Updated Dec 29)
 
 -Voila. 'Play' button is in top middle.
 
--To enable realtime Dynamic Global Illumination, copy the file 'ConsoleVariables.ini' into: C:\Program Files\Unreal Engine\4.6\Engine\Config\
+-(UNTESTED IN ENGINE V4.6.1) To enable realtime Dynamic Global Illumination, copy the file 'ConsoleVariables.ini' into: C:\Program Files\Unreal Engine\4.6\Engine\Config\
