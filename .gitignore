@@ -1,11 +1,9 @@
 #Unreal Engine 4
 
 StagedBuilds/
-WindowsNoEditor/
 Content/Maps/TooLarg4GithubeMaps/
 
 /StagedBuilds
-/WindowsNoEditor
 /Content/Maps/TooLarg4GithubeMaps
 
 #Below folders can (supposedly) be built from the tracked files
