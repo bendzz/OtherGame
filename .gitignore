@@ -3,17 +3,10 @@
 StagedBuilds/
 Content/Maps/TooLarg4GithubeMaps/
 
-/StagedBuilds
-/Content/Maps/TooLarg4GithubeMaps
 
 #Below folders can (supposedly) be built from the tracked files
 /Binaries
 /DerivedDataCache
-/Intermediate/build
+#/Intermediate/build
+/Intermediate
 /Saved
-
-Binaries/
-DerivedDataCache/
-Intermediate/build/
-Saved/
-
