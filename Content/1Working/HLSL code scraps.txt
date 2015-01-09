@@ -1,0 +1,40 @@
+//Flesh waves
+//Objects: (0-1 value indicating object in use or not), x, y, z, radius, +/-offsetStrength, (SIN wave frequency), (SIN wave timer)	//SIN waves for ripples
+//Note: Add yellow tint with recessed displacement
+
+
+
+//Creates skin bulges/concavity at positions
+//figures out normal offset amount (ie make pixel bulge from surface) for each pixel based on it's position in space, and the given list of deform objects (sent in via a renderTexture called 'tex')
+
+float 3 offsetAmount;
+
+//Objects: (0-1 value indicating object in use or not), x, y, z, radius, offsetStrength
+
+//Pos = x,y,z. Position in 3D space of pixel
+
+for (int y=0; y<100; y++)	//Scan horizontal rows of objects
+{
+	offsetAmount += tex2D(tex, float2(0, y)) *  ((tex2D(tex, float2(4, y)) / (( (Pos.x-tex2D(float2(1, y)))^2, (Pos.y-tex2D(float2(2, y)))^2, (Pos.z-tex2D(float2(3, y)))^2 )^(1/2)) ) / tex2D(tex, float2(4, y))) * tex2D(tex, float2(5, y))
+	//offsetAmount +=  inUse * (radius / (pixel distance from object center) / radius) * offsetStrength
+}
+return offsetAmount;
+
+
+//TODO: Jiggle bones
+//Rigging nightmare VS Blueprint --> C++ --> HLSL --> materialBlueprint nightmare.
+//Set of bonees with springs between. When one spring compresses it has to extend other connected springs. Spring compression has inertia and dampening.
+//Question: How are the bones connected to the chest, connected? springs to invisible points?
+
+//TODO: Texture fade in (how am I indicating fade locations/creep?)
+//This is, I guess, how I will control the strength of each possible texture overlay
+//Objects: (0-1 value indicating object in use or not), x, y, z, furRadius, skinRadius, offsetStrength	//The fade is between furRadius/skinRadius
+//Will need a static texture on the character indicating pixel positions in space, so that bone deformation doesn't affect fur creep
+
+//...I could make this work with 2 input vectors per effect, and copy/pasted code...
+	//Function to determine distance from vector. Function to determine fur amount based on that. C/P ad nauseum...
+	
+	
+	
+	
+	
