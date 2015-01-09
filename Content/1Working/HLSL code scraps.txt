@@ -38,3 +38,17 @@ return offsetAmount;
 	
 	
 	
+float3 output
+
+for(int i=-1*radius;1 < radius;i++)
+{
+	for(int j=-1*radius;j < radius;j++)
+	{output += tex2D(tex, uv + float2(i*dist, j*dist));
+	}
+}
+
+return (output/((radius+1)*(radius+1)));
+	
+	
+	
+	
