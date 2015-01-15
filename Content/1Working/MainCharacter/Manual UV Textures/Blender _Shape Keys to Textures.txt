@@ -1,0 +1,246 @@
+#NOTE: Your object needs to be UV unwrapped and have all vertices WITHIN the UV.
+
+#Select a 'start' vertex on the mesh in edit mode
+#Hit tab back to object mode
+#Change a window to a python console and copy this script in
+#Pull up reddit and wait a few mintes
+#When Blender unfreezes, hit enter and check the image
+#Output image will save to "C:tmp\temp.png"
+#Load into UE, hook image to a custom UV material node. Apply gradient.
+
+
+#Each morph needs 2 images for double the color/displacement detail. One image has color banding, the other is very dark
+createBandedImage = False    
+
+#size = 512, 513
+#size = 1024, 1023
+#size = 2048, 2047
+size = 4096, 4095
+
+shapeKeyName = "muzzle _Dog"
+#shapeKeyName = "Start"
+
+maxDisplacement = .3     #In each +/- direction, in Blender Units. Any displacement higher than this will be clamped.
+
+
+maxDisplacement = 1#/(maxDisplacement*2)     #Multiplier to normalize the morph target values to 0-1.
+
+import bpy
+import bmesh
+
+def getEdgesForVertex(v_index, mesh, marked_edges):
+    all_edges = [e for e in mesh.edges if v_index in e.vertices]
+    unmarked_edges = [e for e in all_edges if e.index not in marked_edges]
+    return unmarked_edges
+
+def findConnectedVerts(v_index, mesh, connected_verts, marked_edges, maxdepth=1, level=0):  
+    if level >= maxdepth:
+        return
+    edges = getEdgesForVertex(v_index, mesh, marked_edges)
+    for e in edges:
+        othr_v_index = [idx for idx in mesh.edges[e.index].vertices if idx != v_index][0]
+        connected_verts[othr_v_index] = True
+        vertices[othr_v_index] = level
+        marked_edges.append(e.index)
+        findConnectedVerts(othr_v_index, mesh, connected_verts, marked_edges, maxdepth=maxdepth, level=level+1)
+
+        
+def findConnectedVertsLooping(v_index, mesh, connected_verts, marked_edges, verticeDepth, maxdepth=1, level=0):  
+    marked_vertices = [0] * 20000
+    currentlyConnectedVerts = [0]
+    currentlyConnectedVerts[0] = v_index
+    depth = 0
+    goDeeper = True
+    while goDeeper and depth < maxdepth:
+        goDeeper = False
+        depth = depth + 1
+        #print("Depth " + str(depth))
+        previouslyFoundConnectedVerts = currentlyConnectedVerts
+        currentlyConnectedVerts = []
+        for v_index in previouslyFoundConnectedVerts:
+            #print("vert " + str(v_index))
+            #if level >= maxdepth:
+            #    return
+            #marked_vertices.append(v_index)
+            marked_vertices[v_index] = 1
+            edges = getEdgesForVertex(v_index, mesh, marked_edges)
+            #if not edges:
+            for e in edges:
+                #print("edge " + str(e.index))
+                othr_v_index = [idx for idx in mesh.edges[e.index].vertices if idx != v_index][0]
+                connected_verts[othr_v_index] = True
+                verticeDepth[othr_v_index] = depth
+                marked_edges.append(e.index)
+                #findConnectedVerts(othr_v_index, mesh, connected_verts, marked_edges, maxdepth=maxdepth, level=level+1)
+                if  not marked_vertices[othr_v_index] == 1:
+                    currentlyConnectedVerts.append(othr_v_index)
+                    goDeeper = True
+                #print("Added " + str(othr_v_index))
+    return depth
+                
+
+                
+                
+                
+                
+#Get Shape Keys
+def dump(mesh, vertexMorph):
+    print("Starting")
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    for key in bm.verts.layers.shape.keys():
+        if key == shapeKeyName:
+            val = bm.verts.layers.shape.get(key)
+            print("%s = %s" % (key,val) )
+            sk=mesh.shape_keys.key_blocks[key]
+            print("v=%f, f=%f" % ( sk.value, sk.frame))
+            for i in range(len(bm.verts)):
+                v = bm.verts[i]
+                delta = v[val] - v.co
+                if (delta.length > 0):
+                    #print ( "v[%d]+%s" % ( i,delta) )
+                    vertexMorph[i] = delta
+                    #print ("morph saved: " + str(vertexMorph[i]))
+            print("Done")
+            break
+                
+                
+                
+                
+me = bpy.context.object.data
+uv_layer = me.uv_layers.active.data
+
+
+# blank image
+image = bpy.data.images.new("MyImage", width=size[0], height=size[1])
+
+## For white image
+# pixels = [1.0] * (4 * size[0] * size[1])
+
+
+selected_verts = [i.index for i in bpy.context.active_object.data.vertices if i.select == True]
+startingVert = selected_verts[0]
+print("Starting vertex = " + str(startingVert))
+
+
+#Draw a blank image
+pixels = [None] * size[0] * size[1]
+for x in range(size[0]):
+    for y in range(size[1]):
+        # assign RGBA to something useful
+        r = x / size[0]
+        g = y / size[1]
+        b = (1 - r) * g
+        a = 1.0
+        pixels[(y * size[0]) + x] = [.5, .5, .5, a]
+
+		
+vertices = [0.0] * 20000
+		
+mesh = bpy.context.object.data
+connected_verts = {}
+marked_edges = []
+verticeDepth = [0.0] * 20000
+
+#vertexMorph = [0.0, 0.0, 0.0, 0.0] * 20000
+#vertexMorph = [[[0] for i in range(3)] for i in range(20000)]
+vertexMorph = [None] * 20000
+
+#findConnectedVerts(0, mesh, connected_verts, marked_edges, maxdepth=7)
+#depth = findConnectedVertsLooping(startingVert, mesh, connected_verts, marked_edges, verticeDepth, maxdepth=150)
+#print(",".join([str(v) for v in connected_verts.keys()]))
+print ("Depth of graph was " + str(depth))
+
+dump(bpy.context.active_object.data, vertexMorph)
+
+
+#Apply vertex depth values to the picture
+for poly in me.polygons:
+    #print("Polygon", poly.index)
+    for li in poly.loop_indices:
+        vi = me.loops[li].vertex_index
+        uv = uv_layer[li].uv
+        #print("    Loop index %i (Vertex %i) - UV %f %f" % (li, vi, uv.x, uv.y))
+        #pixels[int((int(uv.y*640) * 640) + uv.x*639)] = [uv.x, uv.y, 0, a]
+        #pixels[int((int(uv.y*640) * 640) + uv.x*639)] = [vi/19419, vi/19419, 1, a]
+        bright = 0
+        #try:
+	    #    if connected_verts[vi]:
+	    #        bright = 1
+        #except:
+	    #    pass
+        #if vi in connected_verts:
+	        #bright = 1
+            #bright = verticeDepth[vi] / depth
+		#if bright != bright:
+	    #    bright = 0
+        #bright = bright / 500
+        try:
+            r = .5+(vertexMorph[vi][0]*maxDisplacement)
+            g = .5-(vertexMorph[vi][1]*maxDisplacement)
+            b = .5+(vertexMorph[vi][2]*maxDisplacement)
+            #pixels[int((int(uv.y*size[1]) * size[0]) + uv.x*(size[0] - 1))] = [r,g,b,1]
+            #pixels[int((int(uv.y*size[1]) * size[0]) + uv.x*(size[0] - 1))] = [0,0,1,1]
+        except:
+	        #pixels[int((int(uv.y*size[1]) * size[0]) + uv.x*(size[0] - 1))] = [1,1,1,1]
+            r = .5
+            g = .5
+            b = .5
+        #Red
+        if createBandedImage:
+            r = ((r * 65025)%255)/255.0
+            g = ((g * 65025)%255)/255.0
+            b = ((b * 65025)%255)/255.0
+        #else:
+        #    r = int(r*255) / 255.0
+        #    g = int(g*255) / 255.0
+        #    b = int(b*255) / 255.0
+        #pixels[int((int(uv.y*640) * 640) + uv.x*639)] = [bright, bright, bright, a]
+        #pixels[int((int(uv.y*size[1]) * size[0]) + uv.x*(size[0] - 1))] = [bright, (1-bright), 0, a]
+        #pixels[int((int(uv.y*size[1]) * size[0]) + uv.x*(size[0] - 1))] = [r, g, 1, a]
+        #pixels[int((int(uv.y*size[1]) * size[0]) + uv.x*(size[0] - 1))] = vertexMorph[vi]
+        pixels[int((int(uv.y*size[1]) * size[0]) + uv.x*(size[0] - 1))] = [r,g,b,1]
+
+#Spreads 12 extra points. NOTE: Unused. Not enough spread, Unreal Engine still samples blacks instead of color
+#PROTIP: If you turn up the mipMap value to blur this texture, it creates a cool creep full of holes that slowly fill in
+#xOffsets = [0,1,2,1,0,-1,-2,-1,0,1,0,-1,0]
+#yOffsets = [-2,-1,0,1,2,1,0,-1,-1,0,1,0,0]
+
+#Spreads 36 extra points
+xOffsets = [0,1,2,3,3,3,2,1,0,-1,-2,-3,-3,-3,-2,-1,0,1,2,2,2,1,0,-1,-2,-2,-2,-1,0,1,1,1,0,-1,-1,-1,0]
+yOffsets = [-3,-3,-2,-1,0,1,2,3,3,3,2,1,0,-1,-2,-3,-2,-2,-1,0,1,2,2,2,1,0,-1,-2,-1,-1,0,1,1,1,0,-1,0]
+        
+#Spread out the color points so Unreal Engine doesn't sample blacks
+pixelsSpread = [None] * size[0] * size[1]
+for offsets in range(0, 37):    #Actually 0-12, stupid python >.<
+    xOffset = xOffsets[offsets]
+    yOffset = yOffsets[offsets]
+    for x in range(size[0]):
+        for y in range(size[1]):
+            baseColor = pixels[(y * size[0]) + x]
+            if offsets == 0:
+                pixelsSpread[(y * size[0]) + x] = baseColor
+            if baseColor[0] != .5 or baseColor[1] != .5 or baseColor[2] != .5:
+                x1 = x + xOffset
+                y1 = y + yOffset
+                #Clamp range
+                x1 = max(0, min(x1, size[0])-1)
+                y1 = max(0, min(y1, size[1])-1)
+                # assign RGBA to something useful
+                #pixelsSpread[(y * size[0]) + x] = baseColor
+                pixelsSpread[(y1 * size[0]) + x1] = baseColor
+            
+        
+        
+# flatten list
+#pixels = [chan for px in pixels for chan in px]
+pixelsSpread = [chan for px in pixelsSpread for chan in px]
+
+# assign pixels
+#image.pixels = pixels
+image.pixels = pixelsSpread
+
+# write image
+image.filepath_raw = "/tmp/temp.png"
+image.file_format = 'PNG'
+image.save()

@@ -1,5 +1,3 @@
-#NOTE: You need to run the output image through a photoshop algorithm to fill in the gaps, before loading to Unreal Engine.
-
 #NOTE: Your object needs to be UV unwrapped and have all vertices WITHIN the UV.
 
 #Select a 'start' vertex on the mesh in edit mode
@@ -8,6 +6,7 @@
 #Pull up reddit and wait a few mintes
 #When Blender unfreezes, hit enter and check the image
 #Output image will save to "C:tmp\temp.png"
+#Load into UE, hook image to a custom UV material node. Apply gradient.
 
 size = 512, 512
 #size = 1024, 1024
@@ -105,8 +104,8 @@ depth = findConnectedVertsLooping(startingVert, mesh, connected_verts, marked_ed
 #print(",".join([str(v) for v in connected_verts.keys()]))
 print ("Depth of graph was " + str(depth))
 
-#New code
 
+#Apply vertex depth values to the picture
 for poly in me.polygons:
     #print("Polygon", poly.index)
     for li in poly.loop_indices:
@@ -129,12 +128,45 @@ for poly in me.polygons:
         #bright = bright / 500
         #pixels[int((int(uv.y*640) * 640) + uv.x*639)] = [bright, bright, bright, a]
         pixels[int((int(uv.y*size[1]) * size[0]) + uv.x*(size[0] - 1))] = [bright, (1-bright), 0, a]
-		
+
+#Spreads 12 extra points. NOTE: Unused. Not enough spread, Unreal Engine still samples blacks instead of color
+#PROTIP: If you turn up the mipMap value to blur this texture, it creates a cool creep full of holes that slowly fill in
+#xOffsets = [0,1,2,1,0,-1,-2,-1,0,1,0,-1,0]
+#yOffsets = [-2,-1,0,1,2,1,0,-1,-1,0,1,0,0]
+
+#Spreads 36 extra points
+xOffsets = [0,1,2,3,3,3,2,1,0,-1,-2,-3,-3,-3,-2,-1,0,1,2,2,2,1,0,-1,-2,-2,-2,-1,0,1,1,1,0,-1,-1,-1,0]
+yOffsets = [-3,-3,-2,-1,0,1,2,3,3,3,2,1,0,-1,-2,-3,-2,-2,-1,0,1,2,2,2,1,0,-1,-2,-1,-1,0,1,1,1,0,-1,0]
+        
+#Spread out the color points so Unreal Engine doesn't sample blacks
+pixelsSpread = [None] * size[0] * size[1]
+for offsets in range(0, 37):    #Actually 0-12, stupid python >.<
+    xOffset = xOffsets[offsets]
+    yOffset = yOffsets[offsets]
+    for x in range(size[0]):
+        for y in range(size[1]):
+            baseColor = pixels[(y * size[0]) + x]
+            if offsets == 0:
+                pixelsSpread[(y * size[0]) + x] = baseColor
+            if baseColor[0] > 0 or baseColor[1] > 0 or baseColor[2] > 0:
+                x1 = x + xOffset
+                y1 = y + yOffset
+                #Clamp range
+                x1 = max(0, min(x1, size[0])-1)
+                y1 = max(0, min(y1, size[1])-1)
+                # assign RGBA to something useful
+                #pixelsSpread[(y * size[0]) + x] = baseColor
+                pixelsSpread[(y1 * size[0]) + x1] = baseColor
+            
+        
+        
 # flatten list
-pixels = [chan for px in pixels for chan in px]
+#pixels = [chan for px in pixels for chan in px]
+pixelsSpread = [chan for px in pixelsSpread for chan in px]
 
 # assign pixels
-image.pixels = pixels
+#image.pixels = pixels
+image.pixels = pixelsSpread
 
 # write image
 image.filepath_raw = "/tmp/temp.png"
